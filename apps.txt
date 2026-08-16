@@ -1,0 +1,16 @@
+# Changes vs base Omarchy, as of 2026-08-15
+
+add brave origin
+add ghostty
+remove chromium
+remove kdenlive
+remove webapp basecamp
+remove webapp google contacts
+remove webapp google maps
+remove webapp google messages
+remove webapp google photos
+remove webapp hey
+remove webapp whatsapp
+remove webapp x
+remove webapp youtube
+remove webapp zoom
