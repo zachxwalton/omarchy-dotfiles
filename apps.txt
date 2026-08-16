@@ -3,6 +3,7 @@
 add brave origin
 add ghostty
 remove chromium
+remove foot
 remove kdenlive
 remove webapp basecamp
 remove webapp google contacts
@@ -14,3 +15,8 @@ remove webapp whatsapp
 remove webapp x
 remove webapp youtube
 remove webapp zoom
+
+default agent omp
+default browser brave-origin
+default editor nvim
+default terminal ghostty
