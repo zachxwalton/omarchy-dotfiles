@@ -24,7 +24,7 @@ NordVPN, Tailscale, Sunshine). Mise tools are the stock Omarchy agent stack
 
 ## Removed web apps
 
-Kept 5 of 13 shipped web apps (Discord, Disk Usage, Docker, HEY, YouTube).
+Kept 3 of 13 shipped web apps (Discord, Disk Usage, Docker).
 Removed:
 
 - Basecamp
@@ -32,8 +32,10 @@ Removed:
 - Google Maps
 - Google Messages
 - Google Photos
+- HEY
 - WhatsApp
 - X
+- YouTube
 - Zoom
 
 TUIs: none removed (foot, imv, mpv kept).
