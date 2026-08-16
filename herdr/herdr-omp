@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Launch/attach the persistent herdr session in a terminal (only when no herdr
+# window is open yet), then open a new focused tab and dispatch `omp` into it
+# with no agent-start/detection machinery at all — `herdr pane run` sends the
+# command immediately and this script exits. herdr may still auto-detect the
+# running omp as an agent on its own; the wrapper does not wait for or drive it.
+#
+# A background job verifies the dispatch actually landed (pane run can silently
+# drop under rapid presses) and reports via notification if omp never appears.
+#
+# Logs to ~/.local/state/herdr-omp.log.
+
+LOG="$HOME/.local/state/herdr-omp.log"
+log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" >>"$LOG"; }
+
+cwd="$(omarchy-cmd-terminal-cwd)"
+
+# Match herdr's own new-tab "follow" behavior: when the keybind fires from
+# inside a herdr window, open omp where the focused herdr pane is.
+active_pid="$(hyprctl activewindow -j 2>/dev/null | jq -r '.pid // empty')"
+if [[ -n "$active_pid" ]]; then
+  child_exe="$(readlink -f "/proc/$(pgrep -P "$active_pid" 2>/dev/null | head -1)/exe" 2>/dev/null)"
+  if [[ "$child_exe" == "/usr/bin/herdr" ]]; then
+    snap="$(herdr api snapshot 2>/dev/null)"
+    fp="$(printf '%s' "$snap" | jq -r '.result.snapshot.focused_pane_id // empty')"
+    if [[ -n "$fp" ]]; then
+      pane_cwd="$(printf '%s' "$snap" | jq -r --arg fp "$fp" '.result.snapshot.panes[] | select(.pane_id == $fp) | .cwd // empty' | head -1)"
+      [[ -n "$pane_cwd" && "$pane_cwd" != "null" ]] && cwd="$pane_cwd"
+    fi
+  fi
+fi
+
+# An attached herdr TUI runs as an arg-less `herdr` process; the daemon is
+# `herdr server`. When a herdr window is already open, skip launching another
+# one (herdr disallows nested TUIs by default) and add the tab to the open
+# session instead.
+if pgrep -f '^(/usr/bin/)?herdr$' >/dev/null; then
+  log "tui attached; reusing open window (cwd=$cwd)"
+else
+  log "no tui; launching terminal (cwd=$cwd)"
+  setsid uwsm-app -- xdg-terminal-exec --dir="$cwd" herdr &
+fi
+
+# The persistent server may still be starting after login; wait until it
+# accepts commands.
+server_up=0
+for _ in $(seq 1 100); do
+  if herdr status 2>/dev/null | grep -q 'status: running'; then
+    server_up=1
+    break
+  fi
+  sleep 0.1
+done
+[[ $server_up -eq 1 ]] || { log "server not running after wait; aborting"; exit 1; }
+
+# New focused tab; omp will run in its root pane
+tab_json="$(herdr tab create --focus --cwd "$cwd" --label omp 2>/dev/null)" || {
+  log "tab create failed: $tab_json"; exit 0; }
+pane_id="$(printf '%s' "$tab_json" | jq -r '.result.root_pane.pane_id')"
+log "tab created: $(printf '%s' "$tab_json" | jq -c '.result.tab // .' | head -c 200) pane=$pane_id"
+[[ -n "$pane_id" && "$pane_id" != "null" ]] || { log "no pane id"; exit 0; }
+
+# Dispatch `omp` immediately — the shell queues it until its prompt is ready.
+if ! herdr pane run "$pane_id" "omp" >/dev/null 2>&1; then
+  log "pane run failed for $pane_id"
+  notify-send -u normal "Herdr + omp failed" "Could not dispatch omp into the new herdr tab" 2>/dev/null
+  exit 1
+fi
+log "omp dispatched to $pane_id"
+
+# Background verification: confirm omp actually became the pane's foreground
+# process (pane run can silently drop under rapid presses). If it never does,
+# tell the user instead of leaving a dead tab.
+setsid bash -c '
+  LOG="$HOME/.local/state/herdr-omp.log"
+  log() { printf "%s %s\n" "$(date +%H:%M:%S)" "$*" >>"$LOG"; }
+  pane="$1"
+  for _ in $(seq 1 40); do
+    procs="$(herdr pane process-info --pane "$pane" 2>/dev/null)"
+    if printf "%s" "$procs" | grep -q "\"name\":\"omp\""; then
+      log "omp running in $pane"
+      exit 0
+    fi
+    sleep 0.1
+  done
+  log "omp never became foreground in $pane"
+  notify-send -u normal "Herdr + omp" "omp did not start in the new herdr tab" 2>/dev/null
+' _ "$pane_id" &
+log "verification dispatched for $pane_id"
