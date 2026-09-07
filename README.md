@@ -25,19 +25,37 @@ Hyprland desktop.
     `xdg-terminals.list`, `user-dirs.dirs`, autostart overrides,
     `hyprland-preview-share-picker/config.yaml`.
   - `.XCompose` — compose-key identification (name, email).
+- [`install.sh`](install.sh) — idempotent one-line installer (see Install).
 - [`herdr/`](herdr/) — herdr + omp keybind setup: opens a new herdr tab running
   omp instantly from a Hyprland keybind (`SUPER + CTRL + RETURN`).
 - [`apps.txt`](apps.txt) — installed & removed apps vs. base Omarchy.
 
-## Restore
+## Install
 
 ```bash
-git clone https://github.com/zachxwalton/omarchy-dotfiles.git ~/omarchy-dotfiles
-# copy (or symlink) the pieces you want, e.g.
-cp -r ~/omarchy-dotfiles/home/.config/* ~/.config/
-cp ~/omarchy-dotfiles/home/.XCompose ~/.XCompose
-cp ~/omarchy-dotfiles/home/.local/bin/omarchy-slack ~/.local/bin/
+curl -fsSL https://raw.githubusercontent.com/zachxwalton/omarchy-dotfiles/main/install.sh | bash
+# or, from a clone:
+./install.sh
 ```
+
+Safe on any machine state — bare Omarchy, partially configured, or already in
+sync:
+
+- Copies only files whose content differs from the repo (pure `cmp`, no rsync
+  dependency); never deletes local extras.
+- Idempotent: a run on a synced machine writes nothing and exits 0.
+- Replaced files are backed up to
+  `~/.cache/omarchy-dotfiles/backups/<timestamp>/`.
+- On another user/machine, `/home/zwalton` paths in `hypr/bindings.lua` and
+  `git/config` are rewritten to `$HOME` automatically. The `zwalton.clock`
+  plugin IDs are left verbatim (shell.json references them).
+- `herdr/config.toml` installs only when absent — local herdr preferences are
+  never clobbered. `herdr/bindings.lua` is a reference snippet already merged
+  into `hypr/bindings.lua`; it is not installed.
+
+Not covered (manual by design): `apps.txt` provisioning (root), logins/secrets
+(gh auth, git credential store, ssh, fingerprint), herdr daemon state, nvim
+plugin/mise first-run fetches.
 
 Notes:
 
