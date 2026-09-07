@@ -1,0 +1,12 @@
+#!/bin/bash
+# Launch Slack, or focus the existing Slack window (matches by window class only,
+# unlike omarchy-launch-or-focus which also matches titles like "slack" or
+# "Slack - Brave Origin" and can grab the wrong window).
+
+ADDRESS=$(hyprctl clients -j | jq -r '.[] | select(.class | test("^slack$"; "i")) | .address' | head -n1)
+
+if [[ -n $ADDRESS ]]; then
+  hyprctl dispatch "hl.dsp.focus({ window = \"address:$ADDRESS\" })" >/dev/null 2>&1
+else
+  setsid uwsm-app -- slack >/dev/null 2>&1 &
+fi

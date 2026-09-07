@@ -6,7 +6,7 @@
   },
   "bar": {
     "position": "top",
-    "transparent": false,
+    "transparent": true,
     "centerAnchor": "omarchy.clock",
     "layout": {
       "left": [
@@ -22,10 +22,11 @@
           "id": "omarchy.indicators"
         },
         {
-          "id": "omarchy.clock",
+          "id": "zwalton.clock",
+          "label": "EST",
           "format": "dddd h:mm AP",
           "formatAlt": "d MMMM 'W'ww yyyy",
-          "verticalFormat": "h\n\u2014\nmm\nAP"
+          "verticalFormat": "h\n—\nmm\nAP"
         },
         {
           "id": "omarchy.keyboard-layout"
@@ -35,6 +36,13 @@
         },
         {
           "id": "omarchy.system-update"
+        },
+        {
+          "id": "zwalton.clock-bst",
+          "timezoneOffsetMinutes": 60,
+          "label": "BST",
+          "format": "h:mm AP",
+          "formatAlt": "d MMMM 'W'ww yyyy"
         }
       ],
       "right": [

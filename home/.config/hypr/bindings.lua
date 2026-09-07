@@ -31,3 +31,9 @@ o.bind("SUPER + CTRL + RETURN", "Herdr + omp", "/home/zwalton/.local/bin/herdr-o
 -- o.bind("SUPER + SHIFT + S", nil, "omarchy-capture-screenshot")
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
+
+-- SUPER+SHIFT+S launches Slack, or focuses it if already running
+-- Unbind default (was: Google Maps webapp)
+hl.unbind("SUPER + SHIFT + S")
+o.bind("SUPER + SHIFT + S", "Slack", "/home/zwalton/.local/bin/omarchy-slack")
+
