@@ -21,3 +21,9 @@ curl -fsSL https://raw.githubusercontent.com/zachxwalton/omarchy-dotfiles/main/i
 ./install.sh
 ```
 
+The installer is idempotent and never deletes local files; replaced files are
+backed up under `~/.cache/omarchy-dotfiles/`. Because the keybindings are
+extremely opinionated, each one is applied only after per-key confirmation.
+For automation: `OMARCHY_DOTFILES_BINDINGS=all` applies every keybinding,
+`=skip` leaves them untouched.
+
